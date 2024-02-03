@@ -73,8 +73,8 @@ int main() {
     g_log_set_handler(G_LOG_DOMAIN, G_LOG_LEVEL_MASK, _dummy, nullptr);
     std::cout << "Hello, World!" << std::endl;
     std::string iface = "wlp3s0";
-    std::string ssid = "ntk-1042v2.0";
-    std::string password = "412587412587";
+    std::string ssid = "testwifi";
+    std::string password = "123123";
 
     /*::wifi::parsing_iwlib parse;
     std::cout << parse.get_device_info();
