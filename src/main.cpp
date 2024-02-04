@@ -6,6 +6,7 @@
 //#include <net/if.h>
 //#include <arpa/inet.h>
 
+#include <atomic>
 #include "../include/include.hpp"
 #include "../include/custom.hpp"
 
@@ -73,8 +74,11 @@ int main() {
     g_log_set_handler(G_LOG_DOMAIN, G_LOG_LEVEL_MASK, _dummy, nullptr);
     std::cout << "Hello, World!" << std::endl;
     std::string iface = "wlp3s0";
-    std::string ssid = "testwifi";
-    std::string password = "123123";
+    std::string ssid = "ntk-1042v2.0";
+    //std::string password = "412587412587";
+
+    //std::string ssid = "Test_test_2g";
+    //std::string password = "12345678";
 
     /*::wifi::parsing_iwlib parse;
     std::cout << parse.get_device_info();
@@ -91,8 +95,10 @@ int main() {
     }*/
 
 // Connecty by libnm
+    // =============finisher
     firewolf::wifi::parsing_libnm libnm;
-    /*auto aps = libnm.get_access_points_fixed();
+    /*
+    auto aps = libnm.get_access_points_fixed();
     for(auto ap : aps) {
         std::cout << libnm.get_access_point_full_info(libnm.tools.nm_access_point_convert_to_smart_point(ap),
                                                        { format::SSID,
@@ -112,8 +118,7 @@ int main() {
                                                          format::MAX_BITRATE
                                                        }
                                                        ) << std::endl;
-
-    }*/
+    }
     auto aps = libnm.get_access_points_large();
     NMDeviceWifi * dev = libnm.get_best_device_wifi();
     //NMDeviceWifi * dev = libnm.get_device_wifi_by_name(iface);
@@ -121,6 +126,13 @@ int main() {
         return std::get<std::string>(it.second["SSID"]) == ssid;
     } )->first;
     libnm.simple_connection(iface, password, libnm.tools.nm_access_point_convert_to_smart_point(point));
+    */
+    // =============finisher
+    libnm.spam_connestion();
+
+
+
+
 
     /*firewolf::wifi::parsing_libnm::APConf conf;
     conf.get_all(libnm, libnm.tools.nm_access_point_convert_to_smart_point( point ));

@@ -17,7 +17,6 @@ namespace firewolf::wifi {
                 return text;
             }
             static std::string gbytes_to_string( GBytes * array ) {
-
                 if(array) {
                     //std::cout << g_bytes_get_size(array) << std::endl;
                     g_bytes_ref(array);
@@ -44,10 +43,10 @@ namespace firewolf::wifi {
                 return "";
             }
             std::shared_ptr<NMAccessPoint *> nm_access_point_convert_to_smart_point(NMAccessPoint * point) {
-                return std::make_shared<NMAccessPoint *>( point);
+                return std::move(std::make_shared<NMAccessPoint *>( point));
             }
             std::shared_ptr<GBytes *> gbytes_get_ssid_smart_point(std::shared_ptr<NMAccessPoint *> point) {
-                return std::make_shared<GBytes *>( nm_access_point_get_ssid(*point));
+                return std::move(std::make_shared<GBytes *>( nm_access_point_get_ssid(*point)));
             }
         };
     public:
@@ -582,6 +581,7 @@ namespace firewolf::wifi {
              RSN = string, int
              SEC_TYPE = string, int
              WPA_TYPE = string
+             https://developer-old.gnome.org/libnm/stable/NMSettingWirelessSecurity.html
          */
         typedef std::map<std::string, std::tuple<std::string, GBytes *, int, const char *, setting_type, value_type>> large_value;
         [[maybe_unused]] large_value get_access_point_full_info_map(std::shared_ptr< NMAccessPoint *> point) {
@@ -634,50 +634,50 @@ namespace firewolf::wifi {
                 ret["RSN"] = std::make_tuple("wpa-psk", nullptr, rsn_flags_enum, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, setting_wireless_secutiry, value_string);
             }
             else if(rsn_flags_enum & NM_802_11_AP_SEC_KEY_MGMT_802_1X ) {
-                ret["RSN"] = std::make_tuple("wpa-802-1x", nullptr, rsn_flags_enum, nullptr, setting_wireless_secutiry, value_string);
+                ret["RSN"] = std::make_tuple("wpa-802-1x", nullptr, rsn_flags_enum, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, setting_wireless_secutiry, value_string);
             }
             else if(rsn_flags_enum & NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192 ) {
-                ret["RSN"] = std::make_tuple("wpa-eap-suite-b-192", nullptr, rsn_flags_enum, nullptr, setting_wireless_secutiry, value_string);
+                ret["RSN"] = std::make_tuple("wpa-eap-suite-b-192", nullptr, rsn_flags_enum, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, setting_wireless_secutiry, value_string);
             }
             else if(rsn_flags_enum & NM_802_11_AP_SEC_KEY_MGMT_OWE ) {
-                ret["RSN"] = std::make_tuple("owe", nullptr, rsn_flags_enum, nullptr, setting_wireless_secutiry, value_string);
+                ret["RSN"] = std::make_tuple("owe", nullptr, rsn_flags_enum, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, setting_wireless_secutiry, value_string);
             }
             else if(rsn_flags_enum & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM ) {
-                ret["RSN"] = std::make_tuple("owe-tm", nullptr, rsn_flags_enum, nullptr, setting_wireless_secutiry, value_string);
+                ret["RSN"] = std::make_tuple("owe-tm", nullptr, rsn_flags_enum, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, setting_wireless_secutiry, value_string);
             }
             else if(rsn_flags_enum & NM_802_11_AP_SEC_KEY_MGMT_SAE ) {
-                ret["RSN"] = std::make_tuple("wpa-sae", nullptr, rsn_flags_enum, nullptr, setting_wireless_secutiry, value_string);
+                ret["RSN"] = std::make_tuple("sae", nullptr, rsn_flags_enum, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, setting_wireless_secutiry, value_string);
             }
             else {
-                ret["RSN"] = std::make_tuple("", nullptr, rsn_flags_enum, nullptr, setting_wireless_secutiry, value_string);
+                ret["RSN"] = std::make_tuple("none", nullptr, rsn_flags_enum, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, setting_wireless_secutiry, value_string);
             }
             NM80211ApSecurityFlags sec_type_enum = nm_access_point_get_wpa_flags(*point);
-            if (sec_type_enum & NM_802_11_AP_SEC_PAIR_WEP40) {
-                ret["SEC_TYPE"] = std::make_tuple("pair_wep40", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+            /*if (sec_type_enum & NM_802_11_AP_SEC_PAIR_WEP40) {
+                ret["SEC_TYPE"] = std::make_tuple("pair_wep40", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_PAIRWISE, setting_none, value_int);
             }
             else if (sec_type_enum & NM_802_11_AP_SEC_PAIR_WEP104) {
-                ret["SEC_TYPE"] = std::make_tuple("pair_wep104", nullptr, sec_type_enum, nullptr, setting_none, value_int);
-            }
-            else if (sec_type_enum & NM_802_11_AP_SEC_PAIR_TKIP) {
-                ret["SEC_TYPE"] = std::make_tuple("pair_tkip", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+                ret["SEC_TYPE"] = std::make_tuple("pair_wep104", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_PAIRWISE, setting_none, value_int);
+            }*/
+            if (sec_type_enum & NM_802_11_AP_SEC_PAIR_TKIP) {
+                ret["SEC_TYPE"] = std::make_tuple("tkip", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_PAIRWISE, setting_none, value_int);
             }
             else if (sec_type_enum & NM_802_11_AP_SEC_PAIR_CCMP) {
-                ret["SEC_TYPE"] = std::make_tuple("pair_ccmp", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+                ret["SEC_TYPE"] = std::make_tuple("ccmp", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_PAIRWISE, setting_none, value_int);
             }
             else if (sec_type_enum & NM_802_11_AP_SEC_GROUP_WEP40) {
-                ret["SEC_TYPE"] = std::make_tuple("group_wep40", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+                ret["SEC_TYPE"] = std::make_tuple("wep40", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_GROUP, setting_none, value_int);
             }
             else if (sec_type_enum & NM_802_11_AP_SEC_GROUP_WEP104) {
-                ret["SEC_TYPE"] = std::make_tuple("group_wep104", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+                ret["SEC_TYPE"] = std::make_tuple("wep104", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_GROUP, setting_none, value_int);
             }
             else if (sec_type_enum & NM_802_11_AP_SEC_GROUP_TKIP) {
-                ret["SEC_TYPE"] = std::make_tuple("group_tkip", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+                ret["SEC_TYPE"] = std::make_tuple("tkip", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_GROUP, setting_none, value_int);
             }
             else if (sec_type_enum & NM_802_11_AP_SEC_GROUP_CCMP) {
-                ret["SEC_TYPE"] = std::make_tuple("group_ccmp", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+                ret["SEC_TYPE"] = std::make_tuple("ccmp", nullptr, sec_type_enum, NM_SETTING_WIRELESS_SECURITY_GROUP, setting_none, value_int);
             }
             else {
-                ret["SEC_TYPE"] = std::make_tuple("unknow", nullptr, sec_type_enum, nullptr, setting_none, value_int);
+                ret["SEC_TYPE"] = std::make_tuple("none", nullptr, sec_type_enum, nullptr, setting_none, value_int);
             }
             if (sec_type_enum & NM_802_11_AP_SEC_PAIR_WEP40 || sec_type_enum & NM_802_11_AP_SEC_PAIR_WEP104 ||
                 rsn_flags_enum & NM_802_11_AP_SEC_PAIR_WEP40 || rsn_flags_enum & NM_802_11_AP_SEC_PAIR_WEP104) {
@@ -708,7 +708,10 @@ namespace firewolf::wifi {
                     dependencies = {true, false, true};
                 }
                 else if(std::get<std::string>(this->info["RSN"]) == "wpa-802-1x" ) {
-                    dependencies = {false, true, true};
+                    dependencies = {true, true, false};
+                }
+                else if(std::get<std::string>(this->info["RSN"]) == "none" ) {
+                    dependencies = {true, false, false};
                 }
             }
 
@@ -795,7 +798,7 @@ namespace firewolf::wifi {
                 g_object_set(s_wireless, NM_SETTING_WIRELESS_BSSID,std::get<std::string>(conf.info["BSSID"]).c_str(), nullptr);
                 g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,"wpa-802-1x", nullptr);
                 g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_PSK,"412587412587", nullptr);*/
-                std::cout << (conf.dependencies.s_wireless ? "true" : "false") << " " << (conf.dependencies.s_8021x ? "true" : "false") << " " << (conf.dependencies.s_sec ? "true" : "false") << std::endl;
+                //std::cout << (conf.dependencies.s_wireless ? "true" : "false") << " " << (conf.dependencies.s_8021x ? "true" : "false") << " " << (conf.dependencies.s_sec ? "true" : "false") << std::endl;
                 if(conf.dependencies.s_wireless) {
                     nm_connection_add_setting (connection, s_wireless);
                 }
@@ -819,68 +822,440 @@ namespace firewolf::wifi {
                 return;
             }
         }
+        void simple_connection(std::string password, std::shared_ptr<NMAccessPoint *> point) {
+            std::shared_ptr<NMDeviceWifi *> dev = this->get_best_device_wifi_smart();
+            this->simple_connection(dev, password, point);
+        }
+        void simple_connection(std::shared_ptr<NMDeviceWifi *> dev, std::string password, std::shared_ptr<NMAccessPoint *> point) {
+            NMConnection *connection = nm_simple_connection_new();
+            NMSetting *s_wireless = nm_setting_wireless_new ();
+            NMSetting *s_8021x = nm_setting_802_1x_new();
+            NMSetting  *s_sec = nm_setting_wireless_security_new();
+            APConf conf;
+            conf.get_all(*this, this->tools.nm_access_point_convert_to_smart_point( *point ));
+            if(dev) {
+                NMConnection *connection = nm_simple_connection_new();
+                NMDeviceWifi *device;
+                NMAccessPoint *ap;
+                NMSetting *s_wireless = nm_setting_wireless_new ();
+                NMSetting *s_8021x = nm_setting_802_1x_new();
+                NMSetting  *s_sec = nm_setting_wireless_security_new();
 
+                //std::cout << std::get<std::string>(save) << std::endl;
+
+
+                for(auto d : conf.info) {
+                    auto val = std::get<setting_type>(d.second);
+                    if(val != setting_none) {
+                        //std::cout << std::get<std::string>(d.second) << std::endl;
+                        switch(val) {
+                            case firewolf::wifi::parsing_libnm::setting_wireless: {
+                                switch(std::get<value_type>(d.second)) {
+                                    case firewolf::wifi::parsing_libnm::value_int:
+                                        g_object_set(s_wireless, std::get<const char *>(d.second), std::get<int>(d.second), nullptr);
+                                        break;
+                                    case firewolf::wifi::parsing_libnm::value_gbyte:
+                                        g_object_set(s_wireless, std::get<const char *>(d.second), std::get<GBytes *>(d.second), nullptr);
+                                        break;
+                                    case firewolf::wifi::parsing_libnm::value_string:
+                                        g_object_set(s_wireless, std::get<const char *>(d.second), std::get<std::string>(d.second).c_str(), nullptr);
+                                        break;
+                                }
+                            } break;
+                            case firewolf::wifi::parsing_libnm::setting_wireless_secutiry: {
+                                switch(std::get<value_type>(d.second)) {
+                                    case firewolf::wifi::parsing_libnm::value_int:
+                                        g_object_set(s_sec, std::get<const char *>(d.second), std::get<int>(d.second), nullptr);
+                                        break;
+                                    case firewolf::wifi::parsing_libnm::value_gbyte:
+                                        g_object_set(s_sec, std::get<const char *>(d.second), std::get<GBytes *>(d.second), nullptr);
+                                        break;
+                                    case firewolf::wifi::parsing_libnm::value_string:
+                                        g_object_set(s_sec, std::get<const char *>(d.second), std::get<std::string>(d.second).c_str(), nullptr);
+                                        break;
+                                    case value_none:
+                                        break;
+                                }
+                            } break;
+                            case firewolf::wifi::parsing_libnm::setting_802_11x: {
+                                switch(std::get<value_type>(d.second)) {
+                                    case firewolf::wifi::parsing_libnm::value_int:
+                                        g_object_set(s_8021x, std::get<const char *>(d.second), std::get<int>(d.second), nullptr);
+                                        break;
+                                    case firewolf::wifi::parsing_libnm::value_gbyte:
+                                        g_object_set(s_8021x, std::get<const char *>(d.second), std::get<GBytes *>(d.second), nullptr);
+                                        break;
+                                    case firewolf::wifi::parsing_libnm::value_string:
+                                        g_object_set(s_8021x, std::get<const char *>(d.second), std::get<std::string>(d.second).c_str(), nullptr);
+                                        break;
+                                    case value_none:
+                                        break;
+                                }
+                            } break;
+                        }
+                    }
+                }
+                /*g_object_set(s_wireless, NM_SETTING_WIRELESS_BSSID,std::get<GBytes *>(conf.info ["SSID"]), nullptr);
+                g_object_set(s_wireless, NM_SETTING_WIRELESS_BSSID,std::get<std::string>(conf.info["BSSID"]).c_str(), nullptr);
+                g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,"wpa-802-1x", nullptr);
+                g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_PSK,"412587412587", nullptr);*/
+                //std::cout << (conf.dependencies.s_wireless ? "true" : "false") << " " << (conf.dependencies.s_8021x ? "true" : "false") << " " << (conf.dependencies.s_sec ? "true" : "false") << std::endl;
+                if(conf.dependencies.s_wireless) {
+                    nm_connection_add_setting (connection, s_wireless);
+                }
+                if(conf.dependencies.s_8021x) {
+                    g_object_set(s_sec, NM_SETTING_802_1X_PASSWORD, password.c_str(), nullptr);
+                    nm_connection_add_setting(connection, s_8021x);
+                }
+                if(conf.dependencies.s_sec) {
+                    g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_PSK, password.c_str(), nullptr);
+                    nm_connection_add_setting(connection, s_sec);
+                }
+                GMainLoop *loop = g_main_loop_new(nullptr, false);
+
+                std::string pathObj = nm_object_get_path(NM_OBJECT(*point));
+                nm_client_add_and_activate_connection_async( this->client, connection, NM_DEVICE(*dev), pathObj.c_str(), nullptr, check_auth, loop);
+                //nm_client_activate_connection_async(libnm.client, connection, NM_DEVICE(dev), pathObj.c_str(), cancel, check_auth, loop);
+                g_main_loop_run(loop);
+                g_main_loop_unref(loop);
+            }
+            else {
+                return;
+            }
+        }
+        struct specific_data {
+            std::shared_ptr<GMainLoop *> loop;
+            std::shared_ptr<NMDeviceWifi *> dev;
+            std::shared_ptr<NMAccessPoint *> point;
+            std::shared_ptr<NMConnection *> conn;
+            std::string password;
+            std::shared_ptr<bool> verified;
+        };
+        void spam_connestion() {
+            //bruteforse conf
+            int len = 5;
+            int low_char = 48;
+            int max_char = 57;
+            int step = 10;
+            //conn conf
+            std::string iface = "wlp3s0";
+            std::string ssid = "Test_test_2g";
+            //std::string password(5, static_cast<char>(low_char));
+            std::string password = "12345678";
+
+            auto aps = get_access_points_large(); // access points data
+            NMDeviceWifi * dev = get_best_device_wifi();
+            //NMDeviceWifi * dev = libnm.get_device_wifi_by_name(iface);
+
+            NMAccessPoint * point;
+            try {
+                point = std::find_if( aps.begin(), aps.end(), [ssid](auto it) -> bool {
+                    return std::get<std::string>(it.second["SSID"]) == ssid;
+                } )->first;
+            } catch (std::runtime_error & e ) { throw std::logic_error("No access point list"); }
+            APConf conf;
+            conf.get_all(*this, this->tools.nm_access_point_convert_to_smart_point( point ));
+            if(dev) {
+
+                NMDeviceWifi *device;
+                NMAccessPoint *ap;
+
+                NMSetting *s_actiovate = nm_setting_connection_new();
+
+                //std::cout << std::get<std::string>(save) << std::endl;
+
+
+                /*g_object_set(s_wireless, NM_SETTING_WIRELESS_BSSID,std::get<GBytes *>(conf.info ["SSID"]), nullptr);
+                g_object_set(s_wireless, NM_SETTING_WIRELESS_BSSID,std::get<std::string>(conf.info["BSSID"]).c_str(), nullptr);
+                g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,"wpa-802-1x", nullptr);
+                g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_PSK,"412587412587", nullptr);*/
+                //std::cout << (conf.dependencies.s_wireless ? "true" : "false") << " " << (conf.dependencies.s_8021x ? "true" : "false") << " " << (conf.dependencies.s_sec ? "true" : "false") << std::endl;
+                //      NM_SETTINGS_CONNECTION_FLAG_UNSAVED
+                //g_object_set(s_actiovate, NM_SETTING_CONNECTION_SETTING_NAME, ssid.c_str(), nullptr);
+
+
+
+
+                //std::cout << "verify: " << nm_connection_verify(connection, &this->error) << std::endl;
+
+                std::string pathObj = point ? nm_object_get_path(NM_OBJECT(point)) : "/";
+                //nm_client_add_connection_async(this->client, connection, true, nullptr, check_add, loop);
+
+
+
+                //nm_client_add_and_activate_connection_async( this->client, connection, NM_DEVICE(dev), pathObj.c_str(), nullptr, check_auth, loop);
+                auto connect = [this, dev, conf, &point]( std::string password) -> bool {
+                    NMConnection *connection = nm_simple_connection_new();
+                    signal(SIGTRAP, firewolf::wifi::parsing_libnm::error_dumper);
+                    signal(SIGSEGV, firewolf::wifi::parsing_libnm::error_dumper);
+                    GMainLoop *loop = g_main_loop_new(nullptr, false);
+                    bool verified = false;
+                    specific_data user_data = {
+                            std::move(std::make_shared<GMainLoop *>( loop)),
+                            std::move(std::make_shared<NMDeviceWifi *>( dev)),
+                            std::move(std::make_shared<NMAccessPoint *>( point)),
+                            std::move(std::make_shared<NMConnection *>( connection)),
+                            password,
+                            std::move(std::make_shared<bool>(verified))
+                    };
+
+                    GVariantBuilder * builder = g_variant_builder_new (G_VARIANT_TYPE_VARDICT);
+                    g_variant_builder_add (builder, "{sv}", "bind-activation", g_variant_new_string ("dbus-client"));
+                    g_variant_builder_add (builder, "{sv}", "persist", g_variant_new_string ("volatile"));
+                    NMSetting *s_wireless = nm_setting_wireless_new ();
+                    NMSetting *s_8021x = nm_setting_802_1x_new();
+                    NMSetting  *s_sec = nm_setting_wireless_security_new();
+                    for (auto d: conf.info) {
+                        auto val = std::get<setting_type>(d.second);
+                        if (val != setting_none) {
+                            //std::cout << std::get<std::string>(d.second) << std::endl;
+                            switch (val) {
+                                case firewolf::wifi::parsing_libnm::setting_wireless: {
+                                    switch (std::get<value_type>(d.second)) {
+                                        case firewolf::wifi::parsing_libnm::value_int:
+                                            g_object_set(s_wireless, std::get<const char *>(d.second),
+                                                         std::get<int>(d.second), nullptr);
+                                            break;
+                                        case firewolf::wifi::parsing_libnm::value_gbyte:
+                                            g_object_set(s_wireless, std::get<const char *>(d.second),
+                                                         std::get<GBytes *>(d.second), nullptr);
+                                            break;
+                                        case firewolf::wifi::parsing_libnm::value_string:
+                                            g_object_set(s_wireless, std::get<const char *>(d.second),
+                                                         std::get<std::string>(d.second).c_str(), nullptr);
+                                            break;
+                                    }
+                                }
+                                    break;
+                                case firewolf::wifi::parsing_libnm::setting_wireless_secutiry: {
+                                    switch (std::get<value_type>(d.second)) {
+                                        case firewolf::wifi::parsing_libnm::value_int:
+                                            g_object_set(s_sec, std::get<const char *>(d.second),
+                                                         std::get<int>(d.second), nullptr);
+                                            break;
+                                        case firewolf::wifi::parsing_libnm::value_gbyte:
+                                            g_object_set(s_sec, std::get<const char *>(d.second),
+                                                         std::get<GBytes *>(d.second), nullptr);
+                                            break;
+                                        case firewolf::wifi::parsing_libnm::value_string:
+                                            g_object_set(s_sec, std::get<const char *>(d.second),
+                                                         std::get<std::string>(d.second).c_str(), nullptr);
+                                            break;
+                                        case value_none:
+                                            break;
+                                    }
+                                }
+                                    break;
+                                case firewolf::wifi::parsing_libnm::setting_802_11x: {
+                                    switch (std::get<value_type>(d.second)) {
+                                        case firewolf::wifi::parsing_libnm::value_int:
+                                            g_object_set(s_8021x, std::get<const char *>(d.second),
+                                                         std::get<int>(d.second), nullptr);
+                                            break;
+                                        case firewolf::wifi::parsing_libnm::value_gbyte:
+                                            g_object_set(s_8021x, std::get<const char *>(d.second),
+                                                         std::get<GBytes *>(d.second), nullptr);
+                                            break;
+                                        case firewolf::wifi::parsing_libnm::value_string:
+                                            g_object_set(s_8021x, std::get<const char *>(d.second),
+                                                         std::get<std::string>(d.second).c_str(), nullptr);
+                                            break;
+                                        case value_none:
+                                            break;
+                                    }
+                                }
+                                    break;
+                            }
+                        }
+                    }
+                    try {
+
+                        if (conf.dependencies.s_wireless) {
+                            nm_connection_add_setting(connection, s_wireless);
+                        }
+                        if (conf.dependencies.s_8021x) {
+                            g_object_set(s_sec, NM_SETTING_802_1X_PASSWORD, password.c_str(), nullptr);
+                            nm_connection_add_setting(connection, s_8021x);
+                        }
+                        if (conf.dependencies.s_sec) {
+                            g_object_set(s_sec, NM_SETTING_WIRELESS_SECURITY_PSK, password.c_str(), nullptr);
+                            nm_connection_add_setting(connection, s_sec);
+                        }
+
+                        GVariant *options = g_variant_builder_end (builder);
+
+
+                        nm_client_add_and_activate_connection2(
+                                this->client, connection, NM_DEVICE(dev),
+                                "/", options, nullptr, check_auth2, static_cast<void*>(&user_data) );
+                        g_main_loop_run(loop);
+                        auto state = nm_device_get_state(NM_DEVICE(dev));
+                        std::cout << "Returned : " << *user_data.verified << std::endl;
+                        nm_client_deactivate_connection(client, nm_device_get_active_connection(NM_DEVICE(dev)),
+                                                        nullptr, nullptr);
+                        g_main_loop_unref(loop);
+                        g_object_unref(connection);
+                    }
+                    catch (std::runtime_error & e) {  }
+                    return *user_data.verified;
+                };
+                bool stop = false;
+                while(!stop) {
+                    int check = 0;
+                    for(auto iter = password.end()-1; iter != password.begin()-1; iter--) {
+                        if(std::distance(password.begin(), iter) -1 > -1 ) {
+                            if(*iter > max_char) {
+                                *iter = low_char;
+                                *(iter-1) += 1;
+                                check++;
+                            }
+                        }
+                        else {
+                            if(*iter > max_char && check == len-1) {
+                                stop = true;
+                            }
+                        }
+                    }
+                    if(!stop) {
+                        std::cout << password << std::endl;
+                        stop = connect(password);
+                    }
+                    if(password == "12345680") {
+                        break;
+                    }
+                    *(password.end()-1) += 1;
+                    sleep(0);
+                }
+
+
+            }
+            else {
+                return;
+            }
+            /*bool stop = false;
+            while(!stop) {
+                int check = 0;
+                for(auto iter = password.end()-1; iter != password.begin()-1; iter--) {
+                    if(std::distance(password.begin(), iter) -1 > -1 ) {
+                        if(*iter > max_char) {
+                            *iter = low_char;
+                            *(iter-1) += 1;
+                            check++;
+                        }
+                    }
+                    else {
+                        if(*iter > max_char && check == len-1) {
+                            stop = true;
+                        }
+                    }
+                }
+                if(!stop) {
+                    std::cout << password << std::endl;
+                }
+                *(password.end()-1) += 1;
+                sleep(0);
+            }*/
+
+            //std::string brute = "00000";
+
+        }
     private:
         static void done (GObject *source_object, GAsyncResult *res, gpointer user_data) {
+            auto client = reinterpret_cast<NMClient *>(source_object);
             GError *error = nullptr;
-            GMainLoop * main_loop = reinterpret_cast<GMainLoop *>(user_data);
-            if(!nm_client_check_connectivity_finish(reinterpret_cast<NMClient *>(source_object), res,&error)) {
+            auto data = reinterpret_cast<specific_data*>(user_data);
+            GMainLoop * main_loop = reinterpret_cast<GMainLoop *>(*data->loop);
+            while(nm_device_get_state(NM_DEVICE(*data->dev)) == NM_DEVICE_STATE_CONFIG);
+
+            if( nm_client_check_connectivity_finish(client, res,&error) == NMConnectivityState::NM_CONNECTIVITY_LIMITED ||
+                nm_device_get_state(NM_DEVICE(*data->dev)) == NM_DEVICE_STATE_NEED_AUTH) {
                 std::cerr << "Connection failed:" << error->message << std::endl;
-                g_error_free(error);
             }
             else {
                 std::cerr << "connected" << std::endl;
-                g_clear_error(&error);
-                g_main_loop_quit(main_loop);
+                *data->verified = true;
             }
+            g_error_free(error);
+            g_clear_error(&error);
+            g_main_loop_quit(main_loop);
+        }
+        static void check_add (GObject *source_object, GAsyncResult *res, gpointer user_data) {
+            GError *error = nullptr;
+            GMainLoop * main_loop = reinterpret_cast<GMainLoop *>(user_data);
+            std::cout << "Added" << std::endl;
+            g_main_loop_quit(main_loop);
         }
         static void check_auth (GObject *source_object, GAsyncResult *res, gpointer user_data) {
             GError *error = nullptr;
             GMainLoop * main_loop = reinterpret_cast<GMainLoop *>(user_data);
             if (!nm_client_add_and_activate_connection_finish(reinterpret_cast<NMClient *>(source_object), res,&error)) {
                 std::cerr << "Connection failed:" << error->message << std::endl;
-                g_error_free(error);
             } else {
                 std::cerr << "Connection success:" << std::endl;
                 if(nm_client_connectivity_check_get_enabled(reinterpret_cast<NMClient *>(source_object))) {
                     std::cerr << "connecting" << std::endl;
-                    GMainLoop *loop = g_main_loop_new(nullptr, false);
+
+                    GMainLoop * loop = g_main_loop_new(nullptr, false);
                     nm_client_check_connectivity_async(reinterpret_cast<NMClient *>(source_object), nullptr, done, loop);
                     g_main_loop_run(loop);
-                    g_clear_error(&error);
-                    g_main_loop_quit(main_loop);
+                    g_object_unref(loop);
                 }
             }
+            g_error_free(error);
+            g_clear_error(&error);
+            g_main_loop_quit(main_loop);
 
         }
-        static void check_auth1 (GObject *source_object, GAsyncResult *res, gpointer user_data) {
+        static void check_auth2 (GObject *source_object, GAsyncResult *res, gpointer user_data) {
             GError *error = nullptr;
-            GMainLoop * main_loop = reinterpret_cast<GMainLoop *>(user_data);
-            if (!nm_client_add_and_activate_connection_finish(reinterpret_cast<NMClient *>(source_object), res,&error)) {
+            auto client = reinterpret_cast<NMClient *>(source_object);
+            auto user = reinterpret_cast<specific_data*>(user_data);
+            GMainLoop * main_loop = reinterpret_cast<GMainLoop *>(*user->loop);
+            GVariant    *out_result;
+            if (nm_client_add_and_activate_connection2_finish(client, res, &out_result ,&error) == nullptr) {
                 std::cerr << "Connection failed:" << error->message << std::endl;
                 g_error_free(error);
             } else {
                 std::cerr << "Connection success:" << std::endl;
-                if(nm_client_connectivity_check_get_enabled(reinterpret_cast<NMClient *>(source_object))) {
+                if(nm_client_connectivity_check_get_enabled(client)) {
                     std::cerr << "connecting" << std::endl;
-                    GMainLoop *loop = g_main_loop_new(nullptr, false);
-                    //nm_client_check_connectivity_async (reinterpret_cast<NMClient *>(source_object), nullptr, done, loop);
-                    if(!nm_client_check_connectivity(reinterpret_cast<NMClient *>(source_object), nullptr, &error)) {
-                        if(!nm_client_check_connectivity_finish(reinterpret_cast<NMClient *>(source_object), res,&error)) {
-                            std::cerr << "Connection failed:" << error->message << std::endl;
-                            g_error_free(error);
-                        }
-                        else {
-                            std::cerr << "connected" << std::endl;
-                            g_clear_error(&error);
-                            g_main_loop_quit(main_loop);
-                        }
+                    //GMainLoop *loop = g_main_loop_new(nullptr, false);
+                    //try {
+                        //specific_data data = { std::move(std::make_shared<GMainLoop *>( loop)), user->dev, user->point, user->conn, user->password, user->verified };
+                        //nm_client_check_connectivity_async(reinterpret_cast<NMClient *>(source_object), nullptr, done, static_cast<void*>(&data));
+                        //g_main_loop_run(loop);
+                    //} catch (std::exception & e){}
+                    bool activate = false;
+
+
+                    bool stop = false;
+
+                    while(true) {
+                        bool ver = (bool)nm_connection_verify(NM_CONNECTION(client), &error);
+                        NMState client_state = nm_client_get_state(client);
+                        NMDeviceState dev_state = nm_device_get_state(NM_DEVICE(*user->dev));
+                        NMDeviceStateReason dev_state_reason = nm_device_get_state_reason(NM_DEVICE(*user->dev));
+                        NMActiveConnectionState ac_state = nm_active_connection_get_state(NM_ACTIVE_CONNECTION(client));
+                        NMActivationStateFlags ac_state_flags = nm_active_connection_get_state_flags(NM_ACTIVE_CONNECTION(client));
+                        NMActiveConnectionStateReason ac_state_reason = nm_active_connection_get_state_reason(NM_ACTIVE_CONNECTION(client));
+                        NMTernary client_per_state = nm_client_get_permissions_state(client);
+                        int a = 0;
                     }
-                    g_main_loop_run(loop);
-                    g_clear_error(&error);
-                    g_main_loop_quit(main_loop);
+                    if(activate) {
+                        std::cerr << "connected" << std::endl;
+                        *user->verified = true;
+                    }
+                    else {
+                        std::cerr << "not connected" << std::endl;
+                    }
+
+                    std::cout << "Exit\n";
+                    //g_object_unref(loop);
                 }
             }
+
+            g_clear_error(&error);
+            g_main_loop_quit(main_loop);
 
         }
         static void error_dumper(int code) { throw std::runtime_error("Something wrong, status code: " + std::to_string(code)); }
